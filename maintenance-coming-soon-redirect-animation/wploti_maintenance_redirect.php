@@ -6,7 +6,7 @@ Description:		Make your website in maintenance mode in seconds with great lookin
 Version:			2.3.0
 Stable tag:	 		2.3.0
 Requires at least:	4.6
-Tested up to:		6.7.2
+Tested up to:		6.8
 Requires PHP:		5.4
 
 Text Domain: 		maintenance-coming-soon-redirect-animation
