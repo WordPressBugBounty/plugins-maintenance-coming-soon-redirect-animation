@@ -33,3 +33,10 @@
 * Fixed issue: Resolved conflicts with other maintenance plugins.
 * Performance improvements: Reduced plugin load time and memory usage.
 * Documentation: Updated FAQs and installation instructions for clarity.
+
+= 2.3.1 =
+* Fixed issue: "Headers already sent" warning resolved by refactoring plugin boot sequence.
+* Enhanced plugin security by reducing premature execution and improving header handling logic.
+* Code improvements: Cleaned up the main class constructor for better maintainability and clarity.
+* Improved translation loading sequence to align with WordPress 6.7+ lifecycle.
+* Improved performance and compatibility across themes and server configurations.

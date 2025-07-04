@@ -3,10 +3,10 @@ Contributors: ilyasine , yasinedr
 Author URI: https://profiles.wordpress.org/ilyasine/
 Tags: maintenance, coming soon, animation, redirect, under construction
 Requires at least: 4.6
-Tested up to: 6.8
+Tested up to: 6.8.2
 Requires PHP: 5.4
-Stable tag: 2.3.0
-Donate link: https://www.paypal.me/yassineidrissi
+Stable tag: 2.3.1
+Donate link: https://www.paypal.me/ilyasine1
 Text Domain: maintenance-coming-soon-redirect-animation
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -153,3 +153,10 @@ This filter is used to pass a different WordPress capability to check if the log
 * Fixed issue: Resolved conflicts with other maintenance plugins.
 * Performance improvements: Reduced plugin load time and memory usage.
 * Documentation: Updated FAQs and installation instructions for clarity.
+
+= 2.3.1 =
+* Fixed issue: "Headers already sent" warning resolved by refactoring plugin boot sequence.
+* Enhanced plugin security by reducing premature execution and improving header handling logic.
+* Code improvements: Cleaned up the main class constructor for better maintainability and clarity.
+* Improved translation loading sequence to align with WordPress 6.7+ lifecycle.
+* Improved performance and compatibility across themes and server configurations.

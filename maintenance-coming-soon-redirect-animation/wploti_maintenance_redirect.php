@@ -3,10 +3,10 @@
 Plugin Name:		Maintenance & Coming Soon Redirect Animation
 Plugin URI:			https://wordpress.org/plugins/maintenance-coming-soon-redirect-animation/
 Description:		Make your website in maintenance mode in seconds with great looking animations and configure settings to allow specific users to bypass the maintenance mode.
-Version:			2.3.0
-Stable tag:	 		2.3.0
+Version:			2.3.1
+Stable tag:	 		2.3.1
 Requires at least:	4.6
-Tested up to:		6.8
+Tested up to:		6.8.2
 Requires PHP:		5.4
 
 Text Domain: 		maintenance-coming-soon-redirect-animation
@@ -19,8 +19,7 @@ Author:				Yassine Idrissi
 Author URI:			https://profiles.wordpress.org/ilyasine/
 
 Copyright:			2022 Yassine Idrissi	(email: ydrissi9@gmail.com)
-				based on Jack Finch Original: 2010-2012  
-   			
+						
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 3, as
@@ -53,9 +52,8 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		var $maintenance_html;
 		var $maintenance_head;
 		private $console;
-		private $console_style;
-		
-				
+		private $console_style;		
+		private $headers = null;		
 		/**
 		 * (php) constructor
 		 *
@@ -64,86 +62,46 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function __construct() {
-			$this->admin_options_name	= "wploti_mr";
-			global $wploti_ajax_nonce, $headers, $wploti_header;
-
-			$wploti_header = get_option('wploti_header_type');
-
-			//set headers here , otherwrise we will get headers already sent warning
-
-			$headers = array();
-			$headers[] = array(
-				'title' => __('200 OK', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '200',
-				'description' => __('Best used for when the site is under development.', 'maintenance-coming-soon-redirect-animation')
-			);
-			$headers[] = array(
-				'title' => __('202 Accepted', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '202',
-				'description' => __('The request has been accepted for processing, but the processing has not been completed.', 'maintenance-coming-soon-redirect-animation')
-			);
-			$headers[] = array(
-				'title' => __('206 Partial Content', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '206',
-				'description' => __('The request has succeeded and the body contains the requested ranges of data, as described in the Range header of the request.', 'maintenance-coming-soon-redirect-animation')
-			);
-			$headers[] = array(
-				'title' => __('302 Found', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '302',
-				'description' => __('The target resource resides temporarily under a different URI', 'maintenance-coming-soon-redirect-animation')
-			);
-			$headers[] = array(
-				'title' => __('307 Temporary Redirect', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '307',
-				'description' => __('The resource requested has been temporarily moved to a different URI', 'maintenance-coming-soon-redirect-animation')
-			);
-			$headers[] = array(
-				'title' => __('503 Service Temporarily Unavailable', 'maintenance-coming-soon-redirect-animation'),
-				'code' => '503',
-				'description' => __('Best for when the site is temporarily taken offline for small amendments. If used for a long period of time, 503 can damage your Google ranking.', 'maintenance-coming-soon-redirect-animation')
-			);
-
-			foreach($headers as $header) {
-				
-				switch ($wploti_header) {
-
-					case $header['code']:
-				
-						$this->console = $header['code'] === '503' ? $header['title'] : $header['description'];
-						$this->console_style = '';
-						$this->console_style .= 'margin: 20px auto;font-family: cursive;';
-						$this->console_style .= 'font-size: 30px; font-weight: bold;';
-						$this->console_style .= 'color: #CFC547; text-align: center;';
-						$this->console_style .= 'letter-spacing: 5px;';
-						$this->console_style .= 'text-shadow: 3px 0px 2px rgba(81,67,21,0.8), -3px 0px 2px rgba(81,67,21,0.8),0px 4px 2px rgba(81,67,21,0.8);';
-
-						/**
-						 * TODD : activate this on prod
-						 */
-					  	//echo '<script>console.warn("%c ' . $console . '", "'. $console_style . '")</script>' ;
-
-							if ( !is_admin() ) :
-
-								header('HTTP/1.1 ' . $header['title'] );
-								header('Status: ' . $header['title'] );
-								
-								header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
-								header("Pragma: no-cache"); // HTTP 1.0.
-								header("Expires: 0"); // Proxies.
-
-							endif;
-
-						break;
-					
-				}
-
-				header('Retry-After: 600');
-	
-
+		private function get_headers() {
+			if ($this->headers === null) {
+				$this->headers = [
+					[
+						'title' => __('200 OK', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '200',
+						'description' => __('Best used for when the site is under development.', 'maintenance-coming-soon-redirect-animation')
+					],
+					[
+						'title' => __('202 Accepted', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '202',
+						'description' => __('The request has been accepted for processing, but the processing has not been completed.', 'maintenance-coming-soon-redirect-animation')
+					],
+					[
+						'title' => __('206 Partial Content', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '206',
+						'description' => __('The request has succeeded and the body contains the requested ranges of data, as described in the Range header of the request.', 'maintenance-coming-soon-redirect-animation')
+					],
+					[
+						'title' => __('302 Found', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '302',
+						'description' => __('The target resource resides temporarily under a different URI', 'maintenance-coming-soon-redirect-animation')
+					],
+					[
+						'title' => __('307 Temporary Redirect', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '307',
+						'description' => __('The resource requested has been temporarily moved to a different URI', 'maintenance-coming-soon-redirect-animation')
+					],
+					[
+						'title' => __('503 Service Temporarily Unavailable', 'maintenance-coming-soon-redirect-animation'),
+						'code' => '503',
+						'description' => __('Best for when the site is temporarily taken offline for small amendments. If used for a long period of time, 503 can damage your Google ranking.', 'maintenance-coming-soon-redirect-animation')
+					],
+				];
 			}
-		
+
+			return $this->headers;
 		}
+
+
 
 		/**
 		 * (php) initialize
@@ -153,8 +111,9 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function init() {
+		public function init() {
 			global $wpdb, $wploti_whitelisted_roles;
+			
 			
 			// Create keys table if needed
 			$tbl = $wpdb->prefix . $this->admin_options_name . "_access_keys";
@@ -214,6 +173,49 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			
 		}
 
+		public function init_hooks(){
+			$wploti_header = get_option('wploti_header_type');
+			$headers = $this->get_headers();
+
+			foreach($headers as $header) {
+				
+				switch ($wploti_header) {
+
+					case $header['code']:
+				
+						$this->console = $header['code'] === '503' ? $header['title'] : $header['description'];
+						$this->console_style = '';
+						$this->console_style .= 'margin: 20px auto;font-family: cursive;';
+						$this->console_style .= 'font-size: 30px; font-weight: bold;';
+						$this->console_style .= 'color: #CFC547; text-align: center;';
+						$this->console_style .= 'letter-spacing: 5px;';
+						$this->console_style .= 'text-shadow: 3px 0px 2px rgba(81,67,21,0.8), -3px 0px 2px rgba(81,67,21,0.8),0px 4px 2px rgba(81,67,21,0.8);';
+
+						/**
+						 * TODD : activate this on prod
+						 */
+					  	//echo '<script>console.warn("%c ' . $console . '", "'. $console_style . '")</script>' ;
+
+							if ( !is_admin() ) :
+
+								header('HTTP/1.1 ' . $header['title'] );
+								header('Status: ' . $header['title'] );
+								
+								header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+								header("Pragma: no-cache"); // HTTP 1.0.
+								header("Expires: 0"); // Proxies.
+
+							endif;
+
+						break;
+					
+				}
+
+				header('Retry-After: 600');
+	
+
+			}
+		}
 	
 		/**
 		 * (php) add custom class to plugin settings page
@@ -389,9 +391,9 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				'https://wordpress.org/support/plugin/maintenance-coming-soon-redirect-animation/',
 				esc_html_x( 'Support', 'verb', 'maintenance-coming-soon-redirect-animation' )
 			);
-			$plugin_meta[] .= sprintf(
+			$plugin_meta[] = sprintf(
 				'<a href="%1$s"><span class="dashicons dashicons-star-filled" aria-hidden="true" style="font-size:14px;line-height:1.3"></span>%2$s</a>',
-				'https://www.paypal.me/yassineidrissi',
+				'https://www.paypal.me/ilyasine1',
 				esc_html_x( 'Sponsor', 'verb', 'maintenance-coming-soon-redirect-animation' )
 			);
 
@@ -1752,6 +1754,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		function header_tab(){ 
 			
 			global $wploti_ajax_nonce, $headers;
+			$headers = $this->get_headers();
 
 			?>
 
@@ -2936,6 +2939,7 @@ if( isset( $my_wploti_maintenance_redirect ) ) {
 
 	// Translation
     add_action( 'plugins_loaded', array( $my_wploti_maintenance_redirect, 'wploti_translation' ));
+    add_action( 'init', array( $my_wploti_maintenance_redirect, 'init_hooks' ));
 
 	add_action('admin_head', array( $my_wploti_maintenance_redirect, 'add_site_favicon'));
 	add_action('wp_default_scripts', array( $my_wploti_maintenance_redirect, 'remove_jquery_migrate_console') );
