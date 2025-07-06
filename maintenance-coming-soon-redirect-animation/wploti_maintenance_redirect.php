@@ -3,10 +3,10 @@
 Plugin Name:		Maintenance & Coming Soon Redirect Animation
 Plugin URI:			https://wordpress.org/plugins/maintenance-coming-soon-redirect-animation/
 Description:		Make your website in maintenance mode in seconds with great looking animations and configure settings to allow specific users to bypass the maintenance mode.
-Version:			2.3.1
-Stable tag:	 		2.3.1
+Version:			2.3.2
+Stable tag:	 		2.3.2
 Requires at least:	4.6
-Tested up to:		6.8.2
+Tested up to:		6.8
 Requires PHP:		5.4
 
 Text Domain: 		maintenance-coming-soon-redirect-animation
@@ -18,7 +18,7 @@ License URI:		https://www.gnu.org/licenses/gpl-3.0.html
 Author:				Yassine Idrissi 
 Author URI:			https://profiles.wordpress.org/ilyasine/
 
-Copyright:			2022 Yassine Idrissi	(email: ydrissi9@gmail.com)
+Copyright:			2022 Yassine Idrissi	(email: ilyasine@outlook.be)
 						
 
 	This program is free software; you can redistribute it and/or modify
@@ -39,8 +39,6 @@ Copyright:			2022 Yassine Idrissi	(email: ydrissi9@gmail.com)
 */
 
 // Exit if accessed directly
-
-
 
 defined( 'ABSPATH' ) || exit;
 
@@ -112,8 +110,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 */
 		
 		public function init() {
-			global $wpdb, $wploti_whitelisted_roles;
-			
+			global $wpdb, $wploti_whitelisted_roles;		
 			
 			// Create keys table if needed
 			$tbl = $wpdb->prefix . $this->admin_options_name . "_access_keys";
@@ -177,11 +174,17 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			$wploti_header = get_option('wploti_header_type');
 			$headers = $this->get_headers();
 
-			foreach($headers as $header) {
-				
-				switch ($wploti_header) {
+			if (headers_sent()) {
+				return;
+			}
 
-					case $header['code']:
+			if (!session_id()) {
+				session_start();
+			}
+
+			foreach($headers as $header) {				
+
+					if ($wploti_header === $header['code']) :
 				
 						$this->console = $header['code'] === '503' ? $header['title'] : $header['description'];
 						$this->console_style = '';
@@ -191,28 +194,17 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 						$this->console_style .= 'letter-spacing: 5px;';
 						$this->console_style .= 'text-shadow: 3px 0px 2px rgba(81,67,21,0.8), -3px 0px 2px rgba(81,67,21,0.8),0px 4px 2px rgba(81,67,21,0.8);';
 
-						/**
-						 * TODD : activate this on prod
-						 */
-					  	//echo '<script>console.warn("%c ' . $console . '", "'. $console_style . '")</script>' ;
 
-							if ( !is_admin() ) :
+						if ( !is_admin() ) :
+							header('HTTP/1.1 ' . $header['title'] );
+							header('Status: ' . $header['title'] );							
+							header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+							header("Pragma: no-cache"); // HTTP 1.0.
+							header("Expires: 0"); // Proxies.
+							header('Retry-After: 600');
+						endif;
 
-								header('HTTP/1.1 ' . $header['title'] );
-								header('Status: ' . $header['title'] );
-								
-								header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
-								header("Pragma: no-cache"); // HTTP 1.0.
-								header("Expires: 0"); // Proxies.
-
-							endif;
-
-						break;
-					
-				}
-
-				header('Retry-After: 600');
-	
+					endif;
 
 			}
 		}
@@ -225,7 +217,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return string
 		 */
 		
-		 function wploti_body_class($classes) {
+		public function wploti_body_class($classes) {
 
 			$wploti_current_screen = get_current_screen();
 
@@ -246,7 +238,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 */
 
 
-		function wploti_ajax_message() {
+		public function wploti_ajax_message() {
 
 			global $refresh_active;
 
@@ -273,7 +265,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return string
 		 */
 
-		function wploti_ajax_header_type(){
+		public function wploti_ajax_header_type(){
 
 			check_ajax_referer('wploti_nonce', 'security');
 
@@ -297,7 +289,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function wploti_ajax_dismiss_activation_notice() {
+		public function wploti_ajax_dismiss_activation_notice() {
 
 			check_ajax_referer( 'wploti_nonce', 'security' );
 
@@ -316,7 +308,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function wploti_ajax_dismiss_notes_notice() {
+		public function wploti_ajax_dismiss_notes_notice() {
 
 			check_ajax_referer( 'wploti_nonce', 'security' );
 
@@ -334,7 +326,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		* @return void
 		*/ 
 
-		function login_message($message)
+		public function login_message($message)
 		{
 			if ( $this->wploti_active() == '1') {
 				$message .= '<div class="message">' . __('Maintenance Mode is <b>enabled</b>.', 'maintenance-coming-soon-redirect-animation') . '</div>';
@@ -352,7 +344,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return array
 		 */	
 
-		function wploti_action_links ( $actions ) {
+		public function wploti_action_links ( $actions ) {
 
 			global $page , $plugin_file , $context , $s , $plugin_data , $plugin_id_attr;
 			$new_actions = array();
@@ -408,7 +400,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		* @return void
 		*/ 
 
-		function wploti_admin_bar(){
+		public function wploti_admin_bar(){
 
 			global $wp_admin_bar;
 			$wploti_ajax_nonce = wp_create_nonce( "wploti_nonce" );
@@ -446,7 +438,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		* @return void
 		*/ 
 
-		function wploti_ajax_toggle_activation() {
+		public function wploti_ajax_toggle_activation() {
 			
 			// check for ajax payoload
 			if ( isset( $_POST['payload'] )  && $_POST['payload'] == 'toggle_wploti_status' ) {
@@ -479,7 +471,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 	
-		 function wploti_maintenance_redirect_menu() {
+		public function wploti_maintenance_redirect_menu() {
 
 			global $submenu;
 	
@@ -526,7 +518,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function animation_select(){
+		public function animation_select(){
 
 			if (isset($_POST['payload']) && $_POST['payload'] == 'animation_select_payload' && 
 				isset($_POST['animation_url']) && !empty($_POST['animation_url'])) {
@@ -550,7 +542,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */	
 
-		function load_animations(){
+		public function load_animations(){
 			
 			if (isset($_POST['start'], $_POST['limit'], $_POST['payload']) && $_POST['payload'] == 'load_animations_payload'){ 
 
@@ -646,7 +638,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function wploti_deactivate(){
+		public function wploti_deactivate(){
 			
 			update_option('wploti_activation_notice', 0);
 
@@ -660,7 +652,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function wploti_enqueue_style_and_script_admin() {
+		public function wploti_enqueue_style_and_script_admin() {
 	
 			$style_src = plugin_dir_url( __FILE__ ) .'css/admin-style.css';
 
@@ -708,7 +700,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function wploti_enqueue_style_and_script_public() {
+		public function wploti_enqueue_style_and_script_public() {
 
 			$loti_script_src = plugin_dir_url( __FILE__ ) .'js/lottie-player-script.js';
 
@@ -738,7 +730,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function wploti_translation() {
+		public function wploti_translation() {
 
 			load_plugin_textdomain( 'maintenance-coming-soon-redirect-animation', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
@@ -752,7 +744,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function wploti_translations_script() {
+		public function wploti_translations_script() {
 			global $wploti_ajax_nonce, $wploti_message, $refresh_active;
 	
 			// variables to js
@@ -781,7 +773,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return string
 		 */
 
-		 function get_user_ip() {
+		public function get_user_ip() {
 			// Check if HTTP_X_FORWARDED_FOR is set and unslash it
 			if ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
 				$ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
@@ -806,7 +798,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return string
 		 */
 
-		function get_user_class_c(){
+		public function get_user_class_c(){
 			$ip = $this->get_user_ip();
 			$ip_parts = explode( '.', $ip );
 			$class_c = $ip_parts[0] . '.' . $ip_parts[1] . '.' .$ip_parts[2] . '.*';
@@ -870,7 +862,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return string
 		 */					
 
-		function alphastring( $len = 20, $valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' ){
+		public function alphastring( $len = 20, $valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' ){
 			$str  = '';
 			$chrs = explode( ' ', $valid_chars );
 			for( $i=0; $i<$len; $i++ ){
@@ -888,7 +880,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		 function add_site_favicon() {
+		public function add_site_favicon() {
 
 			$favicon_link = '<link rel="icon" type="image/x-icon" href="'.  plugin_dir_url( __FILE__ ).'/images/alert-icon.png' .'">';
 
@@ -911,7 +903,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		 function generate_maintenance_page() {
+		public function generate_maintenance_page() {
 			// Enqueue styles and scripts
 			wp_enqueue_style(
 				'wploti-front-style',
@@ -931,9 +923,10 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			if (!empty(get_option('wploti_message')) && isset($this->console_style)) {
 				$inline_script = sprintf(
 					'console.warn("%%c %s", "%s");',
-					esc_js(get_option('wploti_message')),
+					esc_js(wp_strip_all_tags(get_option('wploti_message'))),
 					esc_js($this->console_style)
 				);
+
 				wp_add_inline_script('wploti-lottie-player', $inline_script);
 			}
 		
@@ -1004,49 +997,75 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */			
-		
-		function process_redirect() {
+
+		public function process_redirect() {
 			global $wpdb;
+			
+			// Start session if not already started
+			if (!session_id()) {
+				session_start();
+			}
+			
 			$valid_ips      = array();
 			$valid_class_cs = array();
 			$valid_aks      = array();
 			$wploti_matches  = apply_filters( 'wploti_matches', array() );
 			$current_user = wp_get_current_user();
 			
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			// Get all valid access keys
+			$table_name = $wpdb->prefix . $this->admin_options_name . "_access_keys";
+			$sql = $wpdb->prepare(
+				"SELECT access_key FROM " . esc_sql($table_name) . " WHERE active = %d",
+				1
+			);
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$aks = $wpdb->get_results($sql, OBJECT);
+			if ($aks) {
+				foreach ($aks as $ak) {
+					$valid_aks[] = $ak->access_key;
+				}
+			}
+			
+			// Handle access key from URL
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			if ( isset( $_GET['wploti_mr_temp_access_key'] ) && trim( $_GET['wploti_mr_temp_access_key'] ) != '' ) {
-				// Verify nonce for security
-				$wploti_nonce = isset($_GET['_wpnonce']) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-				if ( isset( $wploti_nonce ) && wp_verify_nonce( $wploti_nonce, 'wploti_access_key_action' ) ) {
+				// Properly sanitize the access key without unslashing as this will break the access
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.NonceVerification.Recommended
+				$access_key = sanitize_text_field( wp_unslash( $_GET['wploti_mr_temp_access_key'] ) );
+				
+				// Check if the access key is valid
+				if( in_array( $access_key, $valid_aks ) ){
+					// Store in session instead of cookie
+					$_SESSION['wploti_mr_access_key'] = $access_key;
+					$_SESSION['wploti_mr_access_time'] = time();
 					
-					// Properly sanitize the access key without unslashing as this will break the access
-					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-					$access_key = sanitize_text_field( $_GET['wploti_mr_temp_access_key'] );
+					// Redirect to clean URL
+					$redirect_url = remove_query_arg( 'wploti_mr_temp_access_key' );
+					wp_redirect( $redirect_url );
+					exit;
+				}
+			}
+			
+			// Check existing session
+			if( isset( $_SESSION['wploti_mr_access_key'] ) && $_SESSION['wploti_mr_access_key'] != '' ){
+				$session_key = sanitize_text_field($_SESSION['wploti_mr_access_key']);
+				
+				// Optional: Check if session is not too old (e.g., 24 hours)
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				if (isset($_SESSION['wploti_mr_access_time']) && (time() - $_SESSION['wploti_mr_access_time']) < (24 * 60 * 60)) {
 					
-					// Build table name safely
-					$table_name = $wpdb->prefix . $this->admin_options_name . "_access_keys";
-		
-					// Use prepare with placeholder for the WHERE clause value
-					$sql = $wpdb->prepare(
-						"SELECT access_key FROM `" . esc_sql($table_name) . "` WHERE active = %d",
-						1
-					);
-		
-					// get valid access keys
-					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-					$aks = $wpdb->get_results($sql, OBJECT);
-					if ($aks) {
-						foreach ($aks as $ak) {
-							$valid_aks[] = $ak->access_key;
-						}
+					// Check if key is still valid
+					if( in_array( $session_key, $valid_aks ) ){
+						$wploti_matches[] = "<!-- wploti_MR: SESSION MATCH -->";
+					} else {
+						// Key is no longer valid, clear session
+						unset($_SESSION['wploti_mr_access_key']);
+						unset($_SESSION['wploti_mr_access_time']);
 					}
-					
-					// set cookie if there's a match
-					if( in_array( $access_key, $valid_aks ) ){
-						$wploti_mr_cookie_time = time()+(60*60*24*365);
-						setcookie( 'wploti_mr_access_key', $access_key, $wploti_mr_cookie_time, '/' );
-						$_COOKIE['wploti_mr_access_key'] = $access_key;
-					}
+				} else {
+					// Session expired, clear it
+					unset($_SESSION['wploti_mr_access_key']);
+					unset($_SESSION['wploti_mr_access_time']);
 				}
 			}
 			
@@ -1063,16 +1082,14 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				} else {
 					if( $this->wploti_active() == '1' ) {
 						// get valid unrestricted IPs
-		
-						// Get unrestricted IPs
 						$table_name = $wpdb->prefix . $this->admin_options_name . "_unrestricted_ips";
 						$sql = $wpdb->prepare(
-							"SELECT ip_address FROM `" . esc_sql($table_name) . "` WHERE active = %d",
+							"SELECT ip_address FROM " . esc_sql($table_name) . " WHERE active = %d",
 							1
 						);
 						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 						$ips = $wpdb->get_results($sql, OBJECT);
-		
+
 						if ($ips) {
 							foreach ($ips as $ip) {
 								$ip_parts = explode('.', $ip->ip_address);
@@ -1081,33 +1098,6 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 								} else {
 									$valid_ips[] = $ip->ip_address;
 								}
-							}
-						}
-		
-						// Get valid access keys
-						$valid_aks = array();
-						$table_name = $wpdb->prefix . $this->admin_options_name . "_access_keys";
-						$sql = $wpdb->prepare(
-							"SELECT access_key FROM `" . esc_sql($table_name) . "` WHERE active = %d",
-							1
-						);
-						// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-						$aks = $wpdb->get_results($sql, OBJECT);
-		
-						if ($aks) {
-							foreach ($aks as $ak) {
-								$valid_aks[] = $ak->access_key;
-							}
-						}
-						
-						// manage cookie filtering
-						if( isset( $_COOKIE['wploti_mr_access_key'] ) && $_COOKIE['wploti_mr_access_key'] != '' ){
-							// Properly sanitize the cookie value
-							$cookie_key = sanitize_text_field(wp_unslash($_COOKIE['wploti_mr_access_key']));
-							
-							// check versus active codes
-							if( in_array( $cookie_key, $valid_aks ) ){
-								$wploti_matches[] = "<!-- wploti_MR: COOKIE MATCH -->";
 							}
 						}
 						
@@ -1124,13 +1114,13 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 								}
 							}
 						}
-		
+
 						// skip Whitelisted User Roles
 						$whitelisted_roles = get_option('wploti_whitelisted_roles');
 						if( is_array($whitelisted_roles) && $this->user_has_role( $whitelisted_roles ) ) {
 							$wploti_matches[] = "<!-- wploti_MR: ROLE MATCH -->";
 						}
-		
+
 						// skip Whitelisted Users
 						$whitelisted_users = get_option('wploti_whitelisted_users');
 						if( is_array($whitelisted_users) && in_array($current_user->ID, $whitelisted_users) ) {
@@ -1147,7 +1137,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				}
 			}
 		}
-		
+
 		/**
 		 * (php)  add new IP
 		 *
@@ -1156,7 +1146,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */			
 		
-		function add_new_ip() {
+		public function add_new_ip() {
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1190,7 +1180,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 				
-		function toggle_ip_status(){
+		public function toggle_ip_status(){
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1224,7 +1214,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function delete_ip(){
+		public function delete_ip(){
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1254,7 +1244,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 
-		function add_new_ak() {
+		public function add_new_ak() {
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1297,7 +1287,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function toggle_ak_status(){
+		public function toggle_ak_status(){
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1331,7 +1321,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function delete_ak(){
+		public function delete_ak(){
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1361,7 +1351,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		
-		function resend_ak(){
+		public function resend_ak(){
 			if ( !current_user_can('manage_options') ) wp_die("Oh no you don't!");
 			check_ajax_referer( 'wploti_nonce', 'security' );
 			global $wpdb;
@@ -1394,7 +1384,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */
 		 
-		function print_unrestricted_ips(){
+		public function print_unrestricted_ips(){
 			global $wpdb; ?>
 
 			<table class="widefat fixed" cellspacing="0">
@@ -1487,7 +1477,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */		
 		
-		function print_access_keys(){
+		public function print_access_keys(){
 			global $wpdb; ?>
 			<table class="widefat fixed" cellspacing="0">
 				<thead>
@@ -1584,7 +1574,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */	
 		
-		function display_status_if_active(){
+		public function display_status_if_active(){
 			global $wpdb , $pagenow , $wploti_ajax_nonce ;				
 
 			if ( get_option( 'wploti_activation_notice' ) && current_user_can('manage_options')) {
@@ -1651,7 +1641,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */	
 
-		function remove_jquery_migrate_console($scripts) {
+		public function remove_jquery_migrate_console($scripts) {
 			if (!empty($scripts->registered['jquery'])) {
 				$scripts->registered['jquery']->deps = array_diff($scripts->registered['jquery']->deps, ['jquery-migrate']);
 			}
@@ -1666,7 +1656,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return void
 		 */		
 		
-		function wploti_add_site_health( $tests ) {
+		public function wploti_add_site_health( $tests ) {
 			$tests['direct']['wploti_status'] = array(
 				'label' => esc_html__( 'Maintenance', 'maintenance-coming-soon-redirect-animation' ),
 				'test'  => array( $this, 'wploti_site_health' ),
@@ -1683,7 +1673,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return array
 		 */			
 
-		function wploti_site_health() {		
+		public function wploti_site_health() {		
 			
 			global $wploti_header;
 			
@@ -1751,7 +1741,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			return get_option('wploti_status', '0') === '0' ? '0': '1';
 		}
 
-		function header_tab(){ 
+		public function header_tab(){ 
 			
 			global $wploti_ajax_nonce, $headers;
 			$headers = $this->get_headers();
@@ -1780,7 +1770,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		 <?php }   //header_tab
 
-		function ip_tab(){ ?>
+		public function ip_tab(){ ?>
 
 			<div class="wploti_mr_admin_section" >
 				<h3 class="big-title"><?php esc_html_e( "Unrestricted IP addresses:" , "maintenance-coming-soon-redirect-animation" ); ?>&nbsp;<span class="wploti_mr_small_dim">( <?php esc_html_e( "Your IP address is:" , "maintenance-coming-soon-redirect-animation" ); ?>&nbsp;<?php echo esc_html($this->get_user_ip()); ?> - <?php esc_html_e( "Your Class C is:" , "maintenance-coming-soon-redirect-animation" ); ?>&nbsp;<?php echo esc_html($this->get_user_class_c()); ?> )</span></h3>
@@ -1794,11 +1784,11 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 <?php } //ip_tab /
 
 
-		function key_tab(){ ?>
+		public function key_tab(){ ?>
 
 			<div class="wploti_mr_admin_section">
 				<h3 class="big-title"><?php esc_html_e( "Access Keys :" , "maintenance-coming-soon-redirect-animation"); ?></h3>
-				<p><?php esc_html_e( "You can allow users temporary access by sending them the access key. When a new key is created, a link to create the access key cookie will be emailed to the email address provided. Access can then be revoked either by disabling or deleting the key." , "maintenance-coming-soon-redirect-animation" ); ?></p>
+				<p><?php esc_html_e( "You can allow users temporary access by sending them the access key. When a new key is created, a link to create the access key session will be emailed to the email address provided. Access can then be revoked either by disabling or deleting the key." , "maintenance-coming-soon-redirect-animation" ); ?></p>
 				
 				<div id="wploti_mr_ak_tbl_container">
 					<?php $this->print_access_keys(); ?>
@@ -1808,7 +1798,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 <?php } 
 
 
-		function animation_tab(){ 
+		public function animation_tab(){ 
 			
 			?>
 
@@ -1833,12 +1823,12 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		 <?php } 
 
-		function wploti_mime_types($mimes) {
+		public function wploti_mime_types($mimes) {
 			$mimes['json'] = 'text/plain'; // Usually the MIME type for JSON used here would be 'application/json', but because of a current WordPress core bug it’s being interpreted as 'text/plain'
 			return $mimes; 
 		} 
 
-		function upload_animation(){
+		public function upload_animation(){
 			$wploti_upload_animation_nonce = wp_create_nonce( "wploti_upload_animation_nonce" );
 			?>
 
@@ -1943,7 +1933,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */
-		function wploti_uploaded_animation_save_option() {
+		public function wploti_uploaded_animation_save_option() {
 			// Verify nonce
 			check_ajax_referer('wploti_upload_animation_nonce', 'security');
 			
@@ -1968,7 +1958,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */
-		function wploti_add_whitelisted_roles_option() {
+		public function wploti_add_whitelisted_roles_option() {
 			// Verify nonce
 			check_ajax_referer('wploti_nonce', 'security');
 			
@@ -2005,7 +1995,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */
-		function wploti_remove_whitelisted_roles_option() {
+		public function wploti_remove_whitelisted_roles_option() {
 			// Verify nonce
 			check_ajax_referer('wploti_nonce', 'security');
 			
@@ -2046,7 +2036,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */
-		function wploti_add_whitelisted_users_option() {
+		public function wploti_add_whitelisted_users_option() {
 			// Verify nonce
 			check_ajax_referer('wploti_nonce', 'security');
 			
@@ -2082,7 +2072,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return void
 		 */
-		function wploti_remove_whitelisted_users_option() {
+		public function wploti_remove_whitelisted_users_option() {
 			// Verify nonce
 			check_ajax_referer('wploti_nonce', 'security');
 			
@@ -2116,7 +2106,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			wp_die();
 		}
 	
-		function message_tab() { 
+		public function message_tab() { 
 			
 			global $wploti_ajax_nonce;
 
@@ -2133,7 +2123,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		 <?php } 
 
-		function extra_tab(){ 
+		public function extra_tab(){ 
 			$wploti_ajax_nonce = wp_create_nonce( "wploti_nonce" );
 			?>
 
@@ -2220,7 +2210,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return boolean
 		 */
-		function user_has_role($roles){
+		public function user_has_role($roles){
 			$current_user = wp_get_current_user();
 
 			if ($current_user->roles) {
@@ -2240,7 +2230,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @access public
 		 * @return boolean
 		 */
-		function create_wploti_select_options($options, $selected = null, $output = true)
+		public function create_wploti_select_options($options, $selected = null, $output = true)
 		{
 			$out = "\n";
 
@@ -2285,7 +2275,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		 * @return array
 		 */
 		
-		function print_admin_page() {
+		public function print_admin_page() {
 			global $wpdb;
 			global $wploti_ajax_nonce;
 

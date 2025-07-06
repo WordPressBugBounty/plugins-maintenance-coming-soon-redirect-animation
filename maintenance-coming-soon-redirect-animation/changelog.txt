@@ -40,3 +40,9 @@
 * Code improvements: Cleaned up the main class constructor for better maintainability and clarity.
 * Improved translation loading sequence to align with WordPress 6.7+ lifecycle.
 * Improved performance and compatibility across themes and server configurations.
+
+= 2.3.2 =
+* Fixed issue: Access key authentication now works correctly when using temporary access URLs.
+* Enhanced authentication by replacing cookie-based storage with more reliable PHP sessions.
+* Eliminated browser dependency issues that could affect access key functionality.
+* Fixed bug: Resolved issue where valid access keys were not bypassing maintenance mode properly.

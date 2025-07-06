@@ -69,8 +69,6 @@ jQuery(document).ready(function ($) {
     }).trigger("hashchange")
 
 
-    
-
     $submenu.bind('click', function (e) {
 
         var $active ;
@@ -114,35 +112,32 @@ jQuery(document).ready(function ($) {
 
     });
     
-      /*   $('.wploti_settings_page .animation-state').map(function(){
-            console.log($(this)[0].src)
-        }) */
 
-        function wploti_state(){
-            if($('#wploti-toggle-adminbar').hasClass('status-1')){ // on
-                $('.wploti_animation_state').map(function(){
-                    $('.wploti_animation_state > lottie-player').remove();
-                    $('.wploti_animation_state').append(
-                        $('<lottie-player/>')
-                        .attr("autoplay", "true")
-                        .attr("loop", "true")
-                        .attr("src", wploti_var.IMG_path + "/green-on.json")
-                        .addClass("animation-state")                           
-                    )                  
-                })
-            }else{  //off
-                $('.wploti_animation_state').map(function(){                
-                    $('.wploti_animation_state > lottie-player').remove();
-                    $('.wploti_animation_state').append(
-                        $('<lottie-player/>')
-                        .attr("autoplay", "true")
-                        .attr("loop", "true")
-                        .attr("src", wploti_var.IMG_path + "/red-off.json")
-                        .addClass("animation-state")                        
-                    )                 
-                })
-            };
-        }
+    function wploti_state(){
+        if($('#wploti-toggle-adminbar').hasClass('status-1')){ // on
+            $('.wploti_animation_state').map(function(){
+                $('.wploti_animation_state > lottie-player').remove();
+                $('.wploti_animation_state').append(
+                    $('<lottie-player/>')
+                    .attr("autoplay", "true")
+                    .attr("loop", "true")
+                    .attr("src", wploti_var.IMG_path + "/green-on.json")
+                    .addClass("animation-state")                           
+                )                  
+            })
+        }else{  //off
+            $('.wploti_animation_state').map(function(){                
+                $('.wploti_animation_state > lottie-player').remove();
+                $('.wploti_animation_state').append(
+                    $('<lottie-player/>')
+                    .attr("autoplay", "true")
+                    .attr("loop", "true")
+                    .attr("src", wploti_var.IMG_path + "/red-off.json")
+                    .addClass("animation-state")                        
+                )                 
+            })
+        };
+    }
 
     /**
      * toggle wploti activation via menu bar ajax
@@ -198,18 +193,18 @@ jQuery(document).ready(function ($) {
             },
             type: 'post',
             success: function (result, textstatus) {
-                /* console.log(result);
+                // console.log(result);
 
-                 console.log('sucess'); */
+                //  console.log('sucess');
 
-                 //window.opener.location.reload();
+                //window.opener.location.reload();
 
                 $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
-                /*console.log(result);
+                // console.log(result);
 
-                 console.log('fail');*/
+                //  console.log('fail');
             },
         })
     })
@@ -320,16 +315,16 @@ jQuery(document).ready(function ($) {
             },
             type: 'post',
             success: function (result, textstatus) {
-                /* console.log(result);
+                // console.log(result);
 
-                 console.log('sucess'); */
+                //  console.log('sucess');
 
                 $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
-                /*console.log(result);
+                // console.log(result);
 
-                 console.log('fail');*/
+                //  console.log('fail');
             },
         })
 
@@ -352,16 +347,16 @@ jQuery(document).ready(function ($) {
             },
             type: 'post',
             success: function (result, textstatus) {
-                /*console.log(result);
+                // console.log(result);
 
-                 console.log('sucess'); */
+                // console.log('sucess');
 
                 $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
-                /*console.log(result);
+                // console.log(result);
 
-                 console.log('fail');*/
+                // console.log('fail');
             },
         })
 
@@ -383,21 +378,21 @@ jQuery(document).ready(function ($) {
             },
             type: 'post',
             success: function (result, textstatus) {
-               /*  console.log(result);
-                console.log('sucess'); */
+                // console.log(result);
+                // console.log('sucess');
 
                 $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
-                /*console.log(result);
-                console.log('fail');*/
+                // console.log(result);
+                // console.log('fail');
             },
         })
         
         setTimeout(() => {
             $(this).text(wploti_var.save_content)
-           /*  wploti_var.refresh_active = false;
-            console.log(wploti_var.refresh_active); */
+            // wploti_var.refresh_active = false;
+            // console.log(wploti_var.refresh_active);
         }, 5000);
     })
     
@@ -456,9 +451,9 @@ jQuery(document).ready(function ($) {
                 //$(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
-                /* console.log(result);
+                // console.log(result);
 
-                 console.log('fail');*/
+                //  console.log('fail');
             },
         })
     })
@@ -496,9 +491,9 @@ jQuery(document).ready(function ($) {
                 }
             },
             error: function (result) {
-                /* console.log(result);
+                // console.log(result);
 
-                console.log('fail'); */
+                // console.log('fail');
             },
         })
     }
@@ -511,11 +506,9 @@ jQuery(document).ready(function ($) {
             action = 'active';
             limit += step; // increase limit by step
             start += step; // increase counter by step
-            /* if the limit counter has bypassed the number of animations
-
-                reset the limit to the number of animations
-
-            */
+            // if the limit counter has bypassed the number of animations
+            //  reset the limit to the number of animations
+           
             if (limit >= limit - (limit % animations_count) && limit > animations_count) {
                 limit = limit - (limit % animations_count);
             }
@@ -542,15 +535,15 @@ jQuery(document).ready(function ($) {
                     },
                     type: 'post',
                     success: function (result, textstatus) {
-                        /* console.log(result);
+                        // console.log(result);
 
-                        console.log('sucess'); */
+                        // console.log('sucess');
                         window.location.reload(true);
                     },
                     error: function (result) {
-                        /* console.log(result);
+                        // console.log(result);
 
-                        console.log('fail'); */
+                        // console.log('fail');
                     },
                 })
             }
