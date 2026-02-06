@@ -3,11 +3,11 @@
 Plugin Name:		Maintenance & Coming Soon Redirect Animation
 Plugin URI:			https://wordpress.org/plugins/maintenance-coming-soon-redirect-animation/
 Description:		Make your website in maintenance mode in seconds with great looking animations and configure settings to allow specific users to bypass the maintenance mode.
-Version:			2.3.2
-Stable tag:	 		2.3.2
+Version:			2.3.3
+Stable tag:	 		2.3.3
 Requires at least:	4.6
-Tested up to:		6.8
-Requires PHP:		5.4
+Tested up to:		7.0
+Requires PHP:		7.4
 
 Text Domain: 		maintenance-coming-soon-redirect-animation
 Domain Path: 		/languages
@@ -147,7 +147,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 					active INT(1) NOT NULL DEFAULT 1
 				)";
 
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 				$wpdb->query($sql);
 			}
 			
@@ -172,7 +172,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		public function init_hooks(){
 			$wploti_header = get_option('wploti_header_type');
-			$headers = $this->get_headers();
+			$wploti_headers = $this->get_headers();
 
 			if (headers_sent()) {
 				return;
@@ -182,7 +182,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				session_start();
 			}
 
-			foreach($headers as $header) {				
+			foreach($wploti_headers as $header) {				
 
 					if ($wploti_header === $header['code']) :
 				
@@ -1041,7 +1041,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 					
 					// Redirect to clean URL
 					$redirect_url = remove_query_arg( 'wploti_mr_temp_access_key' );
-					wp_redirect( $redirect_url );
+					wp_safe_redirect( $redirect_url );
 					exit;
 				}
 			}
@@ -1743,8 +1743,8 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		public function header_tab(){ 
 			
-			global $wploti_ajax_nonce, $headers;
-			$headers = $this->get_headers();
+			global $wploti_ajax_nonce, $wploti_headers;
+			$wploti_headers = $this->get_headers();
 
 			?>
 
@@ -1753,7 +1753,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				<p><?php esc_html_e( "When redirect is enabled you can send different header types:" , "maintenance-coming-soon-redirect-animation" ); ?> </p>			
 				<dl>
 
-				<?php	foreach ( $headers as $header ) {  ?>
+				<?php	foreach ( $wploti_headers as $header ) {  ?>
 
 							<dt>
 								<input type="radio" id="<?php echo esc_attr($header['code']) ?>" name="wploti_header_type" class="wploti_header_type" data-security="<?php echo esc_attr($wploti_ajax_nonce) ; ?>" <?php checked( get_option('wploti_header_type') ,  esc_attr($header['code']) ) ?> value="<?php echo esc_attr($header['code']) ?>">
@@ -2828,7 +2828,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 }
 
 if (class_exists("wploti_maintenance_redirect")) {
-	$my_wploti_maintenance_redirect = new wploti_maintenance_redirect();
+	$wploti_maintenance_redirect = new wploti_maintenance_redirect();
 }
 
 
@@ -2843,11 +2843,11 @@ if (!function_exists("wploti_maintenance_redirect_ap")) {
 
 	function wploti_maintenance_redirect_ap() {
 		if( current_user_can('manage_options') ) {
-			global $my_wploti_maintenance_redirect;
+			global $wploti_maintenance_redirect;
 			global $wploti_ajax_nonce; 
 				 $wploti_ajax_nonce = wp_create_nonce( "wploti_nonce" ); 
 			
-			if( !isset($my_wploti_maintenance_redirect) ) return;
+			if( !isset($wploti_maintenance_redirect) ) return;
 
 			
 			if (function_exists('add_options_page')) {
@@ -2856,7 +2856,7 @@ if (!function_exists("wploti_maintenance_redirect_ap")) {
 					__("Maintenance" , "maintenance-coming-soon-redirect-animation"), 
 						'manage_options', 
 						'wploti-settings', 
-						array( $my_wploti_maintenance_redirect, 'print_admin_page' ));
+						array( $wploti_maintenance_redirect, 'print_admin_page' ));
 			}
 		}
 	}
@@ -2866,7 +2866,7 @@ if (!function_exists("wploti_maintenance_redirect_ap")) {
 
 // actions and filters	
 
-if( isset( $my_wploti_maintenance_redirect ) ) {
+if( isset( $wploti_maintenance_redirect ) ) {
 	//global constants
 
 	define('WPLOTI_VERSION','2.1.2');
@@ -2876,63 +2876,63 @@ if( isset( $my_wploti_maintenance_redirect ) ) {
 	define( 'wploti_admin_url', admin_url().'admin.php?page=wploti-settings');
 
 	// notice_dismiss
-	add_action('wp_ajax_wploti_ajax_dismiss_activation_notice', array( $my_wploti_maintenance_redirect, 'wploti_ajax_dismiss_activation_notice' ) );
-	add_action('wp_ajax_wploti_ajax_dismiss_notes_notice', array( $my_wploti_maintenance_redirect, 'wploti_ajax_dismiss_notes_notice' ) );
+	add_action('wp_ajax_wploti_ajax_dismiss_activation_notice', array( $wploti_maintenance_redirect, 'wploti_ajax_dismiss_activation_notice' ) );
+	add_action('wp_ajax_wploti_ajax_dismiss_notes_notice', array( $wploti_maintenance_redirect, 'wploti_ajax_dismiss_notes_notice' ) );
 	// animation_select
-	add_action('wp_ajax_wploti_animation_select', array( $my_wploti_maintenance_redirect, 'animation_select' ) );
-	add_action('wp_ajax_wploti_animation_ajax_load', array( $my_wploti_maintenance_redirect, 'load_animations' ) );
+	add_action('wp_ajax_wploti_animation_select', array( $wploti_maintenance_redirect, 'animation_select' ) );
+	add_action('wp_ajax_wploti_animation_ajax_load', array( $wploti_maintenance_redirect, 'load_animations' ) );
 	// actions & filters
 	add_action('admin_menu', 'wploti_maintenance_redirect_ap' );
-	add_action('admin_menu',   array( $my_wploti_maintenance_redirect, 'wploti_maintenance_redirect_menu' ));
-	add_action('send_headers',  array( $my_wploti_maintenance_redirect, 'process_redirect'), 0 );
-	add_action('admin_notices', array( $my_wploti_maintenance_redirect, 'display_status_if_active' ) );
-	//add_action( 'admin_notices', array( $my_wploti_maintenance_redirect, 'loti_notice' ) );
-	add_action('wp_before_admin_bar_render', array( $my_wploti_maintenance_redirect, 'wploti_admin_bar' ) );
+	add_action('admin_menu',   array( $wploti_maintenance_redirect, 'wploti_maintenance_redirect_menu' ));
+	add_action('send_headers',  array( $wploti_maintenance_redirect, 'process_redirect'), 0 );
+	add_action('admin_notices', array( $wploti_maintenance_redirect, 'display_status_if_active' ) );
+	//add_action( 'admin_notices', array( $wploti_maintenance_redirect, 'loti_notice' ) );
+	add_action('wp_before_admin_bar_render', array( $wploti_maintenance_redirect, 'wploti_admin_bar' ) );
 	//enqueue styles and scripts
-	add_action('admin_enqueue_scripts', array( $my_wploti_maintenance_redirect ,'wploti_enqueue_style_and_script_admin' ) );	
-	add_action('wp_enqueue_scripts', array( $my_wploti_maintenance_redirect ,'wploti_enqueue_style_and_script_public' ) );	
+	add_action('admin_enqueue_scripts', array( $wploti_maintenance_redirect ,'wploti_enqueue_style_and_script_admin' ) );	
+	add_action('wp_enqueue_scripts', array( $wploti_maintenance_redirect ,'wploti_enqueue_style_and_script_public' ) );	
 	//register script for translation
-	add_action('admin_enqueue_scripts', array( $my_wploti_maintenance_redirect ,'wploti_translations_script' ) );	
+	add_action('admin_enqueue_scripts', array( $wploti_maintenance_redirect ,'wploti_translations_script' ) );	
 
-	//add_filter('plugin_action_links_'.plugin_basename(__FILE__), array( $my_wploti_maintenance_redirect, 'plugin_settings_link' ) );
-	add_filter('site_status_tests', array( $my_wploti_maintenance_redirect, 'wploti_add_site_health' ) );
-	add_filter('admin_body_class',  array( $my_wploti_maintenance_redirect,'wploti_body_class' ) );
-	add_filter('login_message',  array( $my_wploti_maintenance_redirect, 'login_message'));
-	add_filter('upload_mimes',  array( $my_wploti_maintenance_redirect, 'wploti_mime_types'));
-	add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $my_wploti_maintenance_redirect, 'wploti_action_links' ) );
-	add_filter( 'plugin_row_meta', array( $my_wploti_maintenance_redirect, 'wploti_plugin_row_meta' ), 10, 2 );
+	//add_filter('plugin_action_links_'.plugin_basename(__FILE__), array( $wploti_maintenance_redirect, 'plugin_settings_link' ) );
+	add_filter('site_status_tests', array( $wploti_maintenance_redirect, 'wploti_add_site_health' ) );
+	add_filter('admin_body_class',  array( $wploti_maintenance_redirect,'wploti_body_class' ) );
+	add_filter('login_message',  array( $wploti_maintenance_redirect, 'login_message'));
+	add_filter('upload_mimes',  array( $wploti_maintenance_redirect, 'wploti_mime_types'));
+	add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $wploti_maintenance_redirect, 'wploti_action_links' ) );
+	add_filter( 'plugin_row_meta', array( $wploti_maintenance_redirect, 'wploti_plugin_row_meta' ), 10, 2 );
 
 
 	// ajax actions
-	add_action('wp_ajax_wploti_toggle_activation', array( $my_wploti_maintenance_redirect, 'wploti_ajax_toggle_activation') );
-	add_action('wp_ajax_wploti_header_type',  array( $my_wploti_maintenance_redirect, 'wploti_ajax_header_type') );
-	add_action('wp_ajax_wploti_mr_add_ip',    array( $my_wploti_maintenance_redirect, 'add_new_ip'       ) );
-	add_action('wp_ajax_wploti_mr_toggle_ip', array( $my_wploti_maintenance_redirect, 'toggle_ip_status' ) );
-	add_action('wp_ajax_wploti_mr_delete_ip', array( $my_wploti_maintenance_redirect, 'delete_ip'        ) );
-	add_action('wp_ajax_wploti_mr_add_ak',    array( $my_wploti_maintenance_redirect, 'add_new_ak'       ) );
-	add_action('wp_ajax_wploti_mr_toggle_ak', array( $my_wploti_maintenance_redirect, 'toggle_ak_status' ) );
-	add_action('wp_ajax_wploti_mr_delete_ak', array( $my_wploti_maintenance_redirect, 'delete_ak'        ) );
-	add_action('wp_ajax_wploti_mr_resend_ak', array( $my_wploti_maintenance_redirect, 'resend_ak'        ) );
-	add_action('wp_ajax_wploti_ajax_message', array( $my_wploti_maintenance_redirect, 'wploti_ajax_message') );
-	add_action('wp_ajax_wploti_uploaded_animation_save', array( $my_wploti_maintenance_redirect, 'wploti_uploaded_animation_save_option') );
-	add_action('wp_ajax_wploti_add_whitelisted_roles', array( $my_wploti_maintenance_redirect, 'wploti_add_whitelisted_roles_option') );
-	add_action('wp_ajax_wploti_remove_whitelisted_roles', array( $my_wploti_maintenance_redirect, 'wploti_remove_whitelisted_roles_option') );
-	add_action('wp_ajax_wploti_add_whitelisted_users', array( $my_wploti_maintenance_redirect, 'wploti_add_whitelisted_users_option') );
-	add_action('wp_ajax_wploti_remove_whitelisted_users', array( $my_wploti_maintenance_redirect, 'wploti_remove_whitelisted_users_option') );
+	add_action('wp_ajax_wploti_toggle_activation', array( $wploti_maintenance_redirect, 'wploti_ajax_toggle_activation') );
+	add_action('wp_ajax_wploti_header_type',  array( $wploti_maintenance_redirect, 'wploti_ajax_header_type') );
+	add_action('wp_ajax_wploti_mr_add_ip',    array( $wploti_maintenance_redirect, 'add_new_ip'       ) );
+	add_action('wp_ajax_wploti_mr_toggle_ip', array( $wploti_maintenance_redirect, 'toggle_ip_status' ) );
+	add_action('wp_ajax_wploti_mr_delete_ip', array( $wploti_maintenance_redirect, 'delete_ip'        ) );
+	add_action('wp_ajax_wploti_mr_add_ak',    array( $wploti_maintenance_redirect, 'add_new_ak'       ) );
+	add_action('wp_ajax_wploti_mr_toggle_ak', array( $wploti_maintenance_redirect, 'toggle_ak_status' ) );
+	add_action('wp_ajax_wploti_mr_delete_ak', array( $wploti_maintenance_redirect, 'delete_ak'        ) );
+	add_action('wp_ajax_wploti_mr_resend_ak', array( $wploti_maintenance_redirect, 'resend_ak'        ) );
+	add_action('wp_ajax_wploti_ajax_message', array( $wploti_maintenance_redirect, 'wploti_ajax_message') );
+	add_action('wp_ajax_wploti_uploaded_animation_save', array( $wploti_maintenance_redirect, 'wploti_uploaded_animation_save_option') );
+	add_action('wp_ajax_wploti_add_whitelisted_roles', array( $wploti_maintenance_redirect, 'wploti_add_whitelisted_roles_option') );
+	add_action('wp_ajax_wploti_remove_whitelisted_roles', array( $wploti_maintenance_redirect, 'wploti_remove_whitelisted_roles_option') );
+	add_action('wp_ajax_wploti_add_whitelisted_users', array( $wploti_maintenance_redirect, 'wploti_add_whitelisted_users_option') );
+	add_action('wp_ajax_wploti_remove_whitelisted_users', array( $wploti_maintenance_redirect, 'wploti_remove_whitelisted_users_option') );
 	
 	// activation & deactivation 
-	register_activation_hook( __FILE__, array( $my_wploti_maintenance_redirect, 'init' ) );
-	register_deactivation_hook( __FILE__, array( $my_wploti_maintenance_redirect, 'wploti_deactivate' ) );
+	register_activation_hook( __FILE__, array( $wploti_maintenance_redirect, 'init' ) );
+	register_deactivation_hook( __FILE__, array( $wploti_maintenance_redirect, 'wploti_deactivate' ) );
 
 	// Reset Settings action
-	add_action( 'wp_ajax_wploti_reset_settings', array( $my_wploti_maintenance_redirect, 'reset_plugin_settings' ) );
+	add_action( 'wp_ajax_wploti_reset_settings', array( $wploti_maintenance_redirect, 'reset_plugin_settings' ) );
 
 	// Translation
-    add_action( 'plugins_loaded', array( $my_wploti_maintenance_redirect, 'wploti_translation' ));
-    add_action( 'init', array( $my_wploti_maintenance_redirect, 'init_hooks' ));
+    add_action( 'plugins_loaded', array( $wploti_maintenance_redirect, 'wploti_translation' ));
+    add_action( 'init', array( $wploti_maintenance_redirect, 'init_hooks' ));
 
-	add_action('admin_head', array( $my_wploti_maintenance_redirect, 'add_site_favicon'));
-	add_action('wp_default_scripts', array( $my_wploti_maintenance_redirect, 'remove_jquery_migrate_console') );
+	add_action('admin_head', array( $wploti_maintenance_redirect, 'add_site_favicon'));
+	add_action('wp_default_scripts', array( $wploti_maintenance_redirect, 'remove_jquery_migrate_console') );
 	
 
 }

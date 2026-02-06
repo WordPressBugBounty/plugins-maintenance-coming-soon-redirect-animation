@@ -46,3 +46,8 @@
 * Enhanced authentication by replacing cookie-based storage with more reliable PHP sessions.
 * Eliminated browser dependency issues that could affect access key functionality.
 * Fixed bug: Resolved issue where valid access keys were not bypassing maintenance mode properly.
+
+= 2.3.3 =
+* Fixed issue: Variable naming now complies with WordPress coding standards.
+* Code improvements: Added proper prefix to global variables to prevent potential conflicts.
+* Enhanced compatibility with WordPress Plugin Check requirements.

@@ -3,9 +3,9 @@ Contributors: ilyasine , yasinedr
 Author URI: https://profiles.wordpress.org/ilyasine/
 Tags: maintenance, coming soon, animation, redirect, under construction
 Requires at least: 4.6
-Tested up to: 6.8
-Requires PHP: 5.4
-Stable tag: 2.3.2
+Tested up to: 7.0
+Requires PHP: 7.4
+Stable tag: 2.3.3
 Donate link: https://www.paypal.me/ilyasine1
 Text Domain: maintenance-coming-soon-redirect-animation
 License: GPLv3
@@ -166,3 +166,8 @@ This filter is used to pass a different WordPress capability to check if the log
 * Enhanced authentication by replacing cookie-based storage with more reliable PHP sessions.
 * Eliminated browser dependency issues that could affect access key functionality.
 * Fixed bug: Resolved issue where valid access keys were not bypassing maintenance mode properly.
+
+= 2.3.3 =
+* Fixed issue: Variable naming now complies with WordPress coding standards.
+* Code improvements: Added proper prefix to global variables to prevent potential conflicts.
+* Enhanced compatibility with WordPress Plugin Check requirements.

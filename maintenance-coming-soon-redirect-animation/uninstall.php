@@ -19,17 +19,17 @@ delete_option('wploti_whitelisted_users');
 global $wpdb;
 
 // Use the proper table names with prefixes
-$table_ips = $wpdb->prefix . 'wploti_mr_unrestricted_ips';
-$table_keys = $wpdb->prefix . 'wploti_mr_access_keys';
+$wploti_table_ips = $wpdb->prefix . 'wploti_mr_unrestricted_ips';
+$wploti_table_keys = $wpdb->prefix . 'wploti_mr_access_keys';
 
 // Check if the tables exist before attempting to drop them
 // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_ips))) {
-    $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %s", $table_ips));
+if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wploti_table_ips))) {
+    $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %s", $wploti_table_ips));
 }
 
-if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_keys))) {
-    $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %s", $table_keys));
+if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wploti_table_keys))) {
+    $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %s", $wploti_table_keys));
 }
 // phpcs:enable
 
