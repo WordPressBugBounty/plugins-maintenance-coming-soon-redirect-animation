@@ -1,0 +1,37 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wploti/animation",
+	"title": "Lottie Animation (WP Loti)",
+	"category": "media",
+	"icon": "video-alt3",
+	"description": "Insert an animation from the WP Loti animations library.",
+	"textdomain": "maintenance-coming-soon-redirect-animation",
+	"attributes": {
+		"animation": {
+			"type": "string",
+			"default": "default-animation.json"
+		},
+		"autoplay": {
+			"type": "boolean",
+			"default": true
+		},
+		"loop": {
+			"type": "boolean",
+			"default": true
+		},
+		"width": {
+			"type": "string",
+			"default": "100%"
+		},
+		"height": {
+			"type": "string",
+			"default": "300px"
+		}
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

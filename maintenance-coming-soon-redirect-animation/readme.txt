@@ -2,10 +2,10 @@
 Contributors: ilyasine , yasinedr
 Author URI: https://profiles.wordpress.org/ilyasine/
 Tags: maintenance, coming soon, animation, redirect, under construction
-Requires at least: 4.6
-Tested up to: 7.0
+Requires at least: 5.0
+Tested up to: 7.2
 Requires PHP: 7.4
-Stable tag: 2.3.3
+Stable tag: 2.4.0
 Donate link: https://www.paypal.me/ilyasine1
 Text Domain: maintenance-coming-soon-redirect-animation
 License: GPLv3
@@ -22,19 +22,27 @@ The behaviour of this can be enabled or disabled at any time without losing any 
 
 When redirect is enabled, it can send a different header types.
 
-A list of IP addresses can be set up to completely bypass maintenance mode. This option is useful when needing to allow a client’s entire office to access the site while in maintenance mode without needing to maintain individual access keys.
+A list of IPv4 and IPv6 addresses can be set up to completely bypass maintenance mode. IPv4 Class C wildcards are also supported. This option is useful when needing to allow a client’s entire office to access the site while in maintenance mode without needing to maintain individual access keys.
 
-Access keys work by creating a key on the user’s computer that will be checked against when maintenance mode is active. When a new key is created, a link to create the access key cookie will be emailed to the email address provided. Access can then be revoked either by disabling or deleting the key.
+Access keys work by creating a temporary cookie on the user’s computer that will be checked against when maintenance mode is active. When a new key is created, a link to create the access key cookie will be emailed to the email address provided. Access can then be revoked either by disabling or deleting the key.
 
 Whitelisted User Roles – user roles who see the site, instead of under maintenance page
 
 Whitelisted Users – users who see the site, instead of maintenance page
+
+Password Access - allow visitors to preview the site with a shared password. Password access lasts for 24 hours in each browser.
+
+Custom Maintenance Pages - select a published page from its post list actions to use it as the maintenance page, with an option to exclude individual public posts from maintenance mode.
+
+Custom Login URL - optionally restrict direct access to `wp-login.php` and use a custom login URL instead.
  
 **`Animations :`**
 
 Animation on the web is not only fun, but engaging in such a way that it has converted site visitors into customers even before will be available to the general public and it will make them eagerly await its launch.
 
 You can either choose your animation from the library or upload your own; this animation will be shown in front of your site when it is undergoing maintenance.
+
+The included **Lottie Animation (WP Loti)** Gutenberg block lets you insert an animation from the plugin library into posts and pages, with autoplay, loop, width, and height controls.
 
 **` Notes :`**  
 ✔ This plugin will override any other maintenance plugin you use.
@@ -117,6 +125,16 @@ This filter is used to pass a different WordPress capability to check if the log
 
 == Changelog ==
 
+= 2.4.0 =
+* Added IPv6 detection, storage, and unrestricted-address matching. IPv4 Class C wildcards remain supported.
+* Added the Lottie Animation (WP Loti) Gutenberg block with animation, autoplay, loop, width, and height controls.
+* Fixed temporary access keys by using secure, 24-hour cookies that work reliably after following emailed access URLs.
+* Added shared password access for visitor previews.
+* Added the ability to use any published page, post, or public custom post type as the maintenance page, plus per-post maintenance exclusions from post list actions.
+* Added optional custom login URLs that can restrict direct requests to wp-login.php.
+* Improved maintenance-page access panels and page chrome handling.
+* Added New animations
+
 
 = 1.1.1 =
 * First Final release. No Changes Yet.
@@ -171,3 +189,13 @@ This filter is used to pass a different WordPress capability to check if the log
 * Fixed issue: Variable naming now complies with WordPress coding standards.
 * Code improvements: Added proper prefix to global variables to prevent potential conflicts.
 * Enhanced compatibility with WordPress Plugin Check requirements.
+
+= 2.4.0 =
+* Added IPv6 detection, storage, and unrestricted-address matching. IPv4 Class C wildcards remain supported.
+* Added the Lottie Animation (WP Loti) Gutenberg block with animation, autoplay, loop, width, and height controls.
+* Fixed temporary access keys by using secure, 24-hour cookies that work reliably after following emailed access URLs.
+* Added shared password access for visitor previews.
+* Added the ability to use any published page, post, or public custom post type as the maintenance page, plus per-post maintenance exclusions from post list actions.
+* Added optional custom login URLs that can restrict direct requests to wp-login.php.
+* Improved maintenance-page access panels and page chrome handling.
+* Added New animations

@@ -1,33 +1,24 @@
 :root {
   --border-rd: 3px;
-  --violet-primary: #a737d5;
   --orange-primary: #ff7900;
-  --violet-hover: #d037ea;
-}
-
-.wploti_settings_page input[type=radio]:checked::before {
-  background-color: var(--violet-primary);
 }
 
 .wploti_settings_page a,
 #wploti_enabled_notice a {
-  color: var(--violet-primary);
+  color: var(--wp-admin-theme-color);
 }
 
 .wploti_settings_page a:hover,
 .wploti_settings_page a:hover:before {
-  color: var(--violet-hover);
+  color: var(--wp-admin-theme-color-darker-20);
 }
 
 .wploti_settings_page #wpcontent .wp-person a:focus .gravatar,
 .wploti_settings_page #wpcontent a:focus,
 .wploti_settings_page #wpcontent a:focus .media-icon img,
 .wploti_settings_page #wpcontent a:focus .plugin-icon {
-  color: rgb(167 55 213 / 0%);
-  outline: 1px solid transparent;
   box-shadow: none;
-  text-shadow: 0px 1px 0px rgb(167 55 213 / 88%), -2px 0px 3px rgb(167 55 213 / 49%), 0px 1px 3px rgb(167 55 213 / 86%);
-  font-weight: 700;
+  font-weight: 900;
 }
 
 ul li::marker {
@@ -52,15 +43,15 @@ ul li::marker {
 .wploti_settings_page input[type=week]:focus,
 .wploti_settings_page select:focus,
 .wploti_settings_page textarea:focus {
-  border-color: var(--violet-primary);
-  box-shadow: 0 0 0 1px var(--violet-primary);
+  border-color: var(--wp-admin-theme-color);
+  box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
   outline: 2px solid transparent;
 }
 
 .wploti_settings_page .button,
 .wploti_settings_page .button-secondary {
-  color: var(--violet-primary);
-  border-color: var(--violet-primary);
+  color: var(--wp-admin-theme-color);
+  border-color: var(--wp-admin-theme-color);
   background: #f6f7f7;
   vertical-align: top;
 }
@@ -82,17 +73,17 @@ ul li::marker {
 .wploti_settings_page .button.hover,
 .wploti_settings_page .button:hover {
   background: #f0f0f1;
-  border-color: var(--violet-hover);
-  color: var(--violet-hover);
+  border-color: var(--wp-admin-theme-color-darker-20);
+  color: var(--wp-admin-theme-color-darker-20);
 }
 
 .wploti_settings_page .button-secondary:focus,
 .wploti_settings_page .button.focus,
 .wploti_settings_page .button:focus {
   background: #f6f7f7;
-  border-color: var(--violet-hover);
-  color: var(--violet-hover);
-  box-shadow: 0 0 0 1px var(--violet-hover);
+  border-color: var(--wp-admin-theme-color-darker-20);
+  color: var(--wp-admin-theme-color-darker-20);
+  box-shadow: 0 0 0 1px var(--wp-admin-theme-color-darker-20);
   outline: 2px solid transparent;
   outline-offset: 0;
 }
@@ -130,7 +121,7 @@ ul li::marker {
 }
 
 #wploti_enabled_notice {
-  border-left-color: var(--violet-primary);
+  border-left-color: var(--wp-admin-theme-color);
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -165,7 +156,7 @@ ul li::marker {
 .wploti-note-dismiss:before {
   transition: all .1s ease-in-out;
   content: '\f335';
-  color: var(--violet-primary);
+  color: var(--wp-admin-theme-color);
   font: normal 20px dashicons;
 }
 
@@ -180,13 +171,13 @@ ul li::marker {
 #wploti_text_message .button.wploti_save:before {
   transition: all .1s ease-in-out;
   content: "\f147";
-  color: var(--violet-primary);
+  color: var(--wp-admin-theme-color);
   font: normal 20px dashicons;
 }
 
 #wploti_text_message .button.wploti_save:hover:before,
 #wploti_text_message .button.wploti_save:focus:before {
-  color: var(--violet-hover);
+  color: var(--wp-admin-theme-color-darker-20);
 }
 
 #wploti_enabled_notice .notice-activation-text-wrapper {
@@ -257,7 +248,7 @@ ul li::marker {
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: var(--violet-primary)24;
+  background: var(--wp-admin-theme-color)24;
   cursor: auto;
 }
 
@@ -280,7 +271,7 @@ ul li::marker {
 
 .wploti_settings_page .select-btn,
 .wploti_settings_page .selected-btn {
-  background: var(--violet-primary);
+  background: var(--wp-admin-theme-color);
   width: 100px;
   text-align: center;
   color: #ffffff;
@@ -293,21 +284,21 @@ ul li::marker {
 .wploti_settings_page .button-primary.hover,
 .wploti_settings_page .button-primary:focus,
 .wploti_settings_page .button-primary:hover {
-  background: var(--violet-hover);
-  border-color: var(--violet-hover);
+  background: var(--wp-admin-theme-color-darker-20);
+  border-color: var(--wp-admin-theme-color-darker-20);
   color: #fff;
 }
 
 .wploti_settings_page .button-primary {
-  background: var(--violet-primary);
-  border-color: var(--violet-primary);
+  background: var(--wp-admin-theme-color);
+  border-color: var(--wp-admin-theme-color);
   color: #fff;
 }
 
 .wploti_settings_page .selected-btn {
   cursor: default !important;
-  color: var(--violet-primary) !important;
-  border-color: var(--violet-primary) !important;
+  color: var(--wp-admin-theme-color) !important;
+  border-color: var(--wp-admin-theme-color) !important;
   background: #ffffff !important;
 }
 
@@ -337,7 +328,7 @@ ul li::marker {
   border-left-width: 4px;
   box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
   padding: 1px 12px;
-  border-left-color: var(--violet-primary);
+  border-left-color: var(--wp-admin-theme-color);
   border-radius: 5px;
 }
 
@@ -357,7 +348,7 @@ ul li::marker {
 }
 
 .wploti_settings_page ::selection {
-  background: var(--violet-primary);
+  background: var(--wp-admin-theme-color);
   color: #ffffff;
 }
 
@@ -365,16 +356,30 @@ ul li::marker {
   max-width: 100%;
 }
 
-/*  .wploti_settings_page input[type=text]{
-      border: 1px solid var(--violet-primary);
-  } */
+.button.wp-hide-pw {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 4px;
+}
+
+.button.wp-generate-pw{
+  margin-top: 10px;
+}
+
+.wploti-password-picker .password-input-wrapper{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
 .wploti_settings_page input[type=text]:focus {
-  border-color: var(--violet-primary);
-  box-shadow: 0 1px 0 0 var(--violet-primary);
+  border-color: var(--wp-admin-theme-color);
+  box-shadow: 0 1px 0 0 var(--wp-admin-theme-color);
 }
 
 .wploti_settings_page input[type=text]:focus::placeholder {
-  color: #a737d5;
+  color: var(--wp-admin-theme-color-darker-10);
 }
 
 .wploti_settings_page .enable-maintenance-mode {
