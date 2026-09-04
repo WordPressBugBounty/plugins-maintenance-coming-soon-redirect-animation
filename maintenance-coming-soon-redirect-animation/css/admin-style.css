@@ -853,6 +853,18 @@ span.red {
   min-width: initial;
 }
 
+.wploti_settings_page #wploti-save-custom-login{
+  margin-top: 10px;
+}
+
+.wploti_settings_page #wploti-custom-login-slug{
+  margin-right: 20px;
+}
+
+.wploti_settings_page #wploti-copy-custom-login-url{
+  margin-right: 5px;
+}
+
 .wploti_settings_page .wploti-tabs-2nd-level ul.ui-tabs-nav {
   border-bottom: 1px solid #dddddd;
 }

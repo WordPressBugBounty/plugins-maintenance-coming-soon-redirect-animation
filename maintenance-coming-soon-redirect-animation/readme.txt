@@ -5,7 +5,7 @@ Tags: maintenance, coming soon, animation, redirect, under construction
 Requires at least: 5.0
 Tested up to: 7.2
 Requires PHP: 7.4
-Stable tag: 2.4.0
+Stable tag: 2.4.1
 Donate link: https://www.paypal.me/ilyasine1
 Text Domain: maintenance-coming-soon-redirect-animation
 License: GPLv3
@@ -112,28 +112,35 @@ This filter is used to pass a different WordPress capability to check if the log
 4. Send an Access key to specific user
 5. Access key link email
 6. Access keys Tab Updated / Access key is activated for the user
-7. Active or Selected Animation
-8. Upload an animation from Media library
-9. Selected animation from the animations Library
-10. Animations for different purposes : Update, security, coming soon, under construction ..
-11. Maintenance message displayed under animation
-12. Extra Tab : Whitelisted User Roles & Whitelisted Users
-13. Maintenance Front Page 
-14. Site Health Status
-15. WP-CLI Commands
-16. Update plugin through WP-CLI
+7. Password Access / Empty input , Set password or generate one to allow visitor preview access
+8. Generated Password with Strength Meter
+9. Show/Hide Password , Copy Password to the clipboard
+10. Active or Selected Animation
+11. Upload an animation from Media library
+12. Selected animation from the animations Library
+13. Animations for different purposes : Update, security, not found, coming soon, under construction ..
+14. Animations for different purposes : Update, security, not found, coming soon, under construction ..
+15. Animations for different purposes : Update, security, not found, coming soon, under construction ..
+16. Maintenance message displayed under animation
+17. Extra Tab : Whitelisted User Roles & Whitelisted Users / Custom Login Url
+18. Maintenance Front Page 
+19. Maintenance Front Page - Password Access
+20. Maintenance Front Page - Custom Login Form
+21. Maintenance Front Page - Developer console message explanation
+22. Make any post as maintenance page or exclude it from maintenance mode
+23. Make any page as maintenance page or exclude it from maintenance mode
+24. WP-CLI Commands
+25. Update plugin through WP-CLI
+26. Site Health Status
 
 == Changelog ==
 
-= 2.4.0 =
-* Added IPv6 detection, storage, and unrestricted-address matching. IPv4 Class C wildcards remain supported.
-* Added the Lottie Animation (WP Loti) Gutenberg block with animation, autoplay, loop, width, and height controls.
-* Fixed temporary access keys by using secure, 24-hour cookies that work reliably after following emailed access URLs.
-* Added shared password access for visitor previews.
-* Added the ability to use any published page, post, or public custom post type as the maintenance page, plus per-post maintenance exclusions from post list actions.
-* Added optional custom login URLs that can restrict direct requests to wp-login.php.
-* Improved maintenance-page access panels and page chrome handling.
-* Added New animations
+= 2.4.1 =
+* Fixed login issue when using a custom URL with maintenance mode disabled  
+* Private login form now hidden if access to `wp-login.php` is not restricted  
+* Made the private login form optional ([feature request](https://wordpress.org/support/topic/please-add-an-option-to-disable-login-form/))  
+* Added automatic custom URI generation  
+* Added “Copy” button to easily copy the new URL to clipboard
 
 
 = 1.1.1 =
@@ -199,3 +206,10 @@ This filter is used to pass a different WordPress capability to check if the log
 * Added optional custom login URLs that can restrict direct requests to wp-login.php.
 * Improved maintenance-page access panels and page chrome handling.
 * Added New animations
+
+= 2.4.1 =
+* Fixed login issue when using a custom URL with maintenance mode disabled  
+* Private login form now hidden if access to `wp-login.php` is not restricted  
+* Made the private login form optional ([feature request](https://wordpress.org/support/topic/please-add-an-option-to-disable-login-form/))  
+* Added automatic custom URI generation  
+* Added “Copy” button to easily copy the new URL to clipboard

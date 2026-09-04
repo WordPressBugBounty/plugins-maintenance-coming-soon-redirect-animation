@@ -3,8 +3,8 @@
 Plugin Name:		Maintenance & Coming Soon Redirect Animation
 Plugin URI:			https://wordpress.org/plugins/maintenance-coming-soon-redirect-animation/
 Description:		Make your website in maintenance mode in seconds with great looking animations and configure settings to allow specific users to bypass the maintenance mode.
-Version:			2.4.0
-Stable tag:		 		2.4.0
+Version:			2.4.1
+Stable tag:		 		2.4.1
 Requires at least:	5.0
 Tested up to:		7.2
 Requires PHP:		7.4
@@ -171,6 +171,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			update_option('wploti_message', $wploti_message);
 			update_option( 'wploti_custom_login_enabled', '0' );
 			update_option( 'wploti_custom_login_slug', '' );
+			update_option( 'wploti_private_login_enabled', '1' );
 			
 		}
 
@@ -666,16 +667,28 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		}
 
 		public function render_custom_login_page() {
+			if ( '1' !== $this->wploti_active() ) {
+				return;
+			}
+
 			global $wp;
 
 			if ( '1' === get_option( 'wploti_custom_login_enabled', '0' ) && $this->get_custom_login_slug() && $this->get_custom_login_slug() === trim( $wp->request, '/' ) ) {
+				// wp-login.php's own functions (e.g. login_header()) read these via `global`; without redeclaring them here they'd only be locals of this method, causing "undefined variable" notices.
+				global $error, $user_login, $interim_login, $customize_login;
 				require ABSPATH . 'wp-login.php';
 				exit;
 			}
 		}
 
 		public function restrict_default_login_url() {
-			if ( '1' !== get_option( 'wploti_custom_login_enabled', '0' ) ) {
+			if ( '1' !== $this->wploti_active() || '1' !== get_option( 'wploti_custom_login_enabled', '0' ) ) {
+				return;
+			}
+
+			// When wp-login.php is required from render_custom_login_page(), $wp->request still holds the custom slug; don't redirect that legitimate case.
+			global $wp;
+			if ( isset( $wp->request ) && $this->get_custom_login_slug() === trim( $wp->request, '/' ) ) {
 				return;
 			}
 
@@ -688,7 +701,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 		}
 
 		public function filter_login_url( $login_url, $redirect, $force_reauth ) {
-			if ( '1' !== get_option( 'wploti_custom_login_enabled', '0' ) || ! $this->get_custom_login_slug() ) {
+			if ( '1' !== $this->wploti_active() || '1' !== get_option( 'wploti_custom_login_enabled', '0' ) || ! $this->get_custom_login_slug() ) {
 				return $login_url;
 			}
 
@@ -703,6 +716,27 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 			return $custom_login_url;
 		}
 
+		/**
+		 * wp-login.php's own forms post to site_url( 'wp-login.php', 'login_post' ), not wp_login_url();
+		 * without rewriting that too, submissions bypass our custom slug and hit restrict_default_login_url().
+		 */
+		public function filter_login_post_url( $url, $path, $scheme, $blog_id ) {
+			if ( 'login_post' !== $scheme || 0 !== strpos( (string) $path, 'wp-login.php' ) ) {
+				return $url;
+			}
+			if ( '1' !== $this->wploti_active() || '1' !== get_option( 'wploti_custom_login_enabled', '0' ) || ! $this->get_custom_login_slug() ) {
+				return $url;
+			}
+
+			$query = '';
+			$query_pos = strpos( $path, '?' );
+			if ( false !== $query_pos ) {
+				$query = substr( $path, $query_pos );
+			}
+
+			return home_url( '/' . $this->get_custom_login_slug() . '/' . $query );
+		}
+
 		public function save_custom_login_url() {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_send_json_error( array( 'message' => __( 'You do not have access to this resource.', 'maintenance-coming-soon-redirect-animation' ) ) );
@@ -715,12 +749,15 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				wp_send_json_error( array( 'message' => __( 'Enter a login URL.', 'maintenance-coming-soon-redirect-animation' ) ) );
 			}
 
+			$private_login_enabled = isset( $_POST['private_login_enabled'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['private_login_enabled'] ) );
+
 			update_option( 'wploti_custom_login_enabled', $enabled ? '1' : '0' );
 			update_option( 'wploti_custom_login_slug', $slug );
+			update_option( 'wploti_private_login_enabled', $private_login_enabled ? '1' : '0' );
 			wp_send_json_success( array( 
 				'slug' => $slug,
-				'message' => $enabled ? __( 'Login URL saved.', 'maintenance-coming-soon-redirect-animation' ) : __( 'Direct wp-login.php access restored.', 'maintenance-coming-soon-redirect-animation' ),
-				'login_url_saved' => __('Login URL saved.', 'maintenance-coming-soon-redirect-animation'),
+				'message' => $enabled ? __( 'Login Settings saved.', 'maintenance-coming-soon-redirect-animation' ) : __( 'Direct wp-login.php access restored.', 'maintenance-coming-soon-redirect-animation' ),
+				'login_url_saved' => __('Login Settings saved.', 'maintenance-coming-soon-redirect-animation'),
 				'login_access_restored' => __('Direct wp-login.php access restored.', 'maintenance-coming-soon-redirect-animation'),				
 			) );
 		}
@@ -1107,6 +1144,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				update_option( 'wploti_maintenance_page_id', 0 );
 				update_option( 'wploti_custom_login_enabled', '0' );
 				update_option( 'wploti_custom_login_slug', '' );
+				update_option( 'wploti_private_login_enabled', '1' );
 				delete_option( 'wploti_access_password' );
 				delete_option( 'wploti_password_enabled' );
 
@@ -1284,17 +1322,21 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 
 		public function render_access_panels() {
 			$password_enabled = '1' === get_option( 'wploti_password_enabled', '0' ) && $this->get_access_password();
+			$private_login_enabled = '1' === get_option( 'wploti_private_login_enabled', '1' );
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- read-only flag used to display an error message, not to process data.
 			$password_error = isset( $_POST['wploti_mr_password'] ) ? '<p class="wploti-panel-error">' . esc_html__( 'That password is not correct.', 'maintenance-coming-soon-redirect-animation' ) . '</p>' : '';
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- read-only flag used to display an error message, not to process data.
 			$login_error = isset( $_POST['wploti_mr_private_login'] ) ? '<p class="wploti-panel-error">' . esc_html__( 'The login details are not valid.', 'maintenance-coming-soon-redirect-animation' ) . '</p>' : '';
+			if ( ! $password_enabled && ! $private_login_enabled ) {
+				return;
+			}
 			?>
 			<div class="wploti-access-controls">
 				<?php if ( $password_enabled ) : ?><button type="button" class="wploti-access-trigger" data-wploti-panel="public" aria-label="<?php esc_attr_e( 'Open password access', 'maintenance-coming-soon-redirect-animation' ); ?>">&#128273;</button><?php endif; ?>
-				<button type="button" class="wploti-access-trigger" data-wploti-panel="private" aria-label="<?php esc_attr_e( 'Open private login', 'maintenance-coming-soon-redirect-animation' ); ?>">&#128274;</button>
+				<?php if ( $private_login_enabled ) : ?><button type="button" class="wploti-access-trigger" data-wploti-panel="private" aria-label="<?php esc_attr_e( 'Open private login', 'maintenance-coming-soon-redirect-animation' ); ?>">&#128274;</button><?php endif; ?>
 			</div>
 			<?php if ( $password_enabled ) : ?><aside class="wploti-access-panel" data-wploti-panel="public" aria-hidden="true"><button type="button" class="wploti-panel-close" aria-label="<?php esc_attr_e( 'Close', 'maintenance-coming-soon-redirect-animation' ); ?>">&times;</button><h2><?php esc_html_e( 'Password Access', 'maintenance-coming-soon-redirect-animation' ); ?></h2><form method="post"><label for="wploti-mr-password"><?php esc_html_e( 'Password', 'maintenance-coming-soon-redirect-animation' ); ?></label><input id="wploti-mr-password" name="wploti_mr_password" type="password" required autocomplete="current-password"><?php wp_nonce_field( 'wploti_mr_password_action', 'wploti_mr_password_nonce' ); ?><button type="submit"><?php esc_html_e( 'Open Website', 'maintenance-coming-soon-redirect-animation' ); ?></button><?php echo wp_kses_post( $password_error ); ?></form></aside><?php endif; ?>
-			<aside class="wploti-access-panel" data-wploti-panel="private" aria-hidden="true"><button type="button" class="wploti-panel-close" aria-label="<?php esc_attr_e( 'Close', 'maintenance-coming-soon-redirect-animation' ); ?>">&times;</button><h2><?php esc_html_e( 'Private Login', 'maintenance-coming-soon-redirect-animation' ); ?></h2><form method="post"><label for="wploti-private-username"><?php esc_html_e( 'Username or Email', 'maintenance-coming-soon-redirect-animation' ); ?></label><input id="wploti-private-username" name="log" type="text" required autocomplete="username"><label for="wploti-private-password"><?php esc_html_e( 'Password', 'maintenance-coming-soon-redirect-animation' ); ?></label><input id="wploti-private-password" name="pwd" type="password" required autocomplete="current-password"><input name="wploti_mr_private_login" type="hidden" value="1"><?php wp_nonce_field( 'wploti_mr_private_login_action', 'wploti_mr_login_nonce' ); ?><button type="submit"><?php esc_html_e( 'Log In', 'maintenance-coming-soon-redirect-animation' ); ?></button><?php echo wp_kses_post( $login_error ); ?></form></aside>
+			<?php if ( $private_login_enabled ) : ?><aside class="wploti-access-panel" data-wploti-panel="private" aria-hidden="true"><button type="button" class="wploti-panel-close" aria-label="<?php esc_attr_e( 'Close', 'maintenance-coming-soon-redirect-animation' ); ?>">&times;</button><h2><?php esc_html_e( 'Private Login', 'maintenance-coming-soon-redirect-animation' ); ?></h2><form method="post"><label for="wploti-private-username"><?php esc_html_e( 'Username or Email', 'maintenance-coming-soon-redirect-animation' ); ?></label><input id="wploti-private-username" name="log" type="text" required autocomplete="username"><label for="wploti-private-password"><?php esc_html_e( 'Password', 'maintenance-coming-soon-redirect-animation' ); ?></label><input id="wploti-private-password" name="pwd" type="password" required autocomplete="current-password"><input name="wploti_mr_private_login" type="hidden" value="1"><?php wp_nonce_field( 'wploti_mr_private_login_action', 'wploti_mr_login_nonce' ); ?><button type="submit"><?php esc_html_e( 'Log In', 'maintenance-coming-soon-redirect-animation' ); ?></button><?php echo wp_kses_post( $login_error ); ?></form></aside><?php endif; ?>
 			<?php
 		}
 
@@ -1403,8 +1445,9 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				}
 			}
 
+			$private_login_enabled = '1' === get_option( 'wploti_private_login_enabled', '1' );
 			$login_nonce_valid = isset( $_POST['wploti_mr_login_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wploti_mr_login_nonce'] ) ), 'wploti_mr_private_login_action' );
-			if ( $login_nonce_valid && isset( $_POST['wploti_mr_private_login'] ) ) {
+			if ( $private_login_enabled && $login_nonce_valid && isset( $_POST['wploti_mr_private_login'] ) ) {
 				$credentials = array(
 					'user_login'    => isset( $_POST['log'] ) ? sanitize_user( wp_unslash( $_POST['log'] ) ) : '',
 					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- password value must remain unchanged for authentication.
@@ -2516,7 +2559,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 						wploti_access_password: form.find('[name="wploti_access_password"]').val(),
 						wploti_password_enabled: form.find('[name="wploti_password_enabled"]').is(':checked') ? '1' : '0'
 					}, function(response) {
-						jQuery(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
+						jQuery(".updated").text('<?php echo esc_js( __( 'Password Settings saved successfully.', 'maintenance-coming-soon-redirect-animation' ) ); ?>').fadeIn(1000).delay(7000).fadeOut("slow");
 						if (response === 'SUCCESS' && form.find('[name="wploti_access_password"]').val()) {
 							jQuery('#wploti-password-status').text('<?php echo esc_js( __( 'Password saved. Use Copy Password to share it securely.', 'maintenance-coming-soon-redirect-animation' ) ); ?>');
 						}
@@ -2711,6 +2754,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				if (array_key_exists($whitelisted_role, $all_roles) && !in_array($whitelisted_role, $wploti_whitelisted_roles)) {
 					$wploti_whitelisted_roles[] = $whitelisted_role;
 					update_option('wploti_whitelisted_roles', $wploti_whitelisted_roles);
+					wp_send_json_success(array('message'=> __('Role(s) have been successfully whitelisted', 'maintenance-coming-soon-redirect-animation')));
 				}
 			}
 
@@ -2753,6 +2797,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				
 				// Update the option
 				update_option('wploti_whitelisted_roles', $wploti_whitelisted_roles);
+				wp_send_json_success(array('message'=> __('Role(s) have been successfully removed from the whitelist', 'maintenance-coming-soon-redirect-animation')));
 			}
 
 			wp_die();
@@ -2788,6 +2833,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				if (get_userdata($whitelisted_user) && !in_array($whitelisted_user, $wploti_whitelisted_users)) {
 					$wploti_whitelisted_users[] = $whitelisted_user;
 					update_option('wploti_whitelisted_users', $wploti_whitelisted_users);
+					wp_send_json_success(array('message'=> __('User(s) have been successfully whitelisted', 'maintenance-coming-soon-redirect-animation')));
 				}
 			}
 
@@ -2830,6 +2876,7 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 				
 				// Update the option
 				update_option('wploti_whitelisted_users', $wploti_whitelisted_users);
+				wp_send_json_success(array('message'=> __('User(s) have been successfully removed from the whitelist', 'maintenance-coming-soon-redirect-animation')));
 			}
 
 			wp_die();
@@ -2929,9 +2976,10 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 						<th scope="row"><label for="wploti-custom-login-slug"><?php esc_html_e( 'Custom Login URL', 'maintenance-coming-soon-redirect-animation' ); ?></label></th>
 						<td>
 							<label><input type="checkbox" id="wploti-custom-login-enabled" data-security="<?php echo esc_attr( $wploti_ajax_nonce ); ?>" <?php checked( '1', get_option( 'wploti_custom_login_enabled', '0' ) ); ?>> <?php esc_html_e( 'Restrict direct access to wp-login.php', 'maintenance-coming-soon-redirect-animation' ); ?></label>
-							<p><code><?php echo esc_html( home_url( '/' ) ); ?></code><input type="text" id="wploti-custom-login-slug" value="<?php echo esc_attr( $this->get_custom_login_slug() ); ?>" placeholder="private-login" class="regular-text" autocomplete="off"></p>
+							<p><code><?php echo esc_html( home_url( '/' ) ); ?></code><input type="text" id="wploti-custom-login-slug" value="<?php echo esc_attr( $this->get_custom_login_slug() ); ?>" data-base-url="<?php echo esc_url( home_url( '/' ) ); ?>" placeholder="private-login" class="regular-text1" autocomplete="off"><button type="button" id="wploti-copy-custom-login-url" class="button" aria-label="<?php esc_attr_e( 'Copy login URL', 'maintenance-coming-soon-redirect-animation' ); ?>" title="<?php esc_attr_e( 'Copy login URL', 'maintenance-coming-soon-redirect-animation' ); ?>"><span class="dashicons dashicons-admin-page" aria-hidden="true"></span></button> <button type="button" id="wploti-generate-custom-login-slug" class="button"><?php esc_html_e( 'Generate URL', 'maintenance-coming-soon-redirect-animation' ); ?></button></p>
 							<p class="description"><?php esc_html_e( 'Use this URL to sign in. Direct requests to wp-login.php will be redirected to the home page.', 'maintenance-coming-soon-redirect-animation' ); ?></p>
-							<button type="button" id="wploti-save-custom-login" class="button button-secondary"><?php esc_html_e( 'Save Login URL', 'maintenance-coming-soon-redirect-animation' ); ?></button>
+							<p><label><input type="checkbox" id="wploti-private-login-enabled" <?php checked( '1', get_option( 'wploti_private_login_enabled', '1' ) ); ?>> <?php esc_html_e( 'Show private login form on the maintenance page', 'maintenance-coming-soon-redirect-animation' ); ?></label></p>
+							<button type="button" id="wploti-save-custom-login" class="button button-secondary"><?php esc_html_e( 'Save Login Settings', 'maintenance-coming-soon-redirect-animation' ); ?></button>
 							<span id="wploti-custom-login-result" aria-live="polite"></span>
 						</td>
 					</tr>
@@ -3061,6 +3109,31 @@ if( !class_exists("wploti_maintenance_redirect") ) {
 						jQuery('.modal').fadeOut('1000');
 					})
 				}
+
+				function wploti_alert_arr(errors) {
+					var alertContent = `
+					<div class="modal">
+						<div class="modal-content">
+							<div class="modal-header">
+								<img class="alert-icon" src="<?php echo esc_attr(plugin_dir_url(__FILE__) . '/images/alert-icon.png'); ?>" alt="Alert Icon" />
+							</div>
+							<div class="messages">
+								${errors.map(err => `<div>${err}</div>`).join('')}
+							</div>
+							<div class="modal-footer">
+								<button class="button button-primary ok_wploti_alert" name="ok_wploti_alert">OK</button>
+							</div>
+						</div>
+					</div>`;
+					var modal = document.createElement("div");
+					modal.innerHTML = alertContent;
+					document.body.appendChild(modal); 
+
+					jQuery('.ok_wploti_alert').click(function(){
+						jQuery('.modal').fadeOut('1000');
+					});
+				}
+
 
 				/**
 				 * (js) custom confirm
@@ -3500,7 +3573,8 @@ if( isset( $wploti_maintenance_redirect ) ) {
 	add_action('wp_enqueue_scripts', array( $wploti_maintenance_redirect ,'wploti_enqueue_style_and_script_public' ) );
 	add_filter( 'body_class', array( $wploti_maintenance_redirect, 'add_maintenance_page_body_class' ) );
 	add_action( 'wp_footer', array( $wploti_maintenance_redirect, 'render_custom_maintenance_access_panels' ) );
-	add_action( 'template_redirect', array( $wploti_maintenance_redirect, 'render_custom_login_page' ), 0 );
+	// Priority -10 so this runs before process_redirect() (send_headers priority 0); the custom login URL only needs to win the race while maintenance mode is active.
+	add_action( 'send_headers', array( $wploti_maintenance_redirect, 'render_custom_login_page' ), -10 );
 	add_action( 'login_init', array( $wploti_maintenance_redirect, 'restrict_default_login_url' ) );
 	//register script for translation
 	add_action('admin_enqueue_scripts', array( $wploti_maintenance_redirect ,'wploti_translations_script' ) );	
@@ -3511,6 +3585,7 @@ if( isset( $wploti_maintenance_redirect ) ) {
 	add_filter('login_message',  array( $wploti_maintenance_redirect, 'login_message'));
 	add_filter('upload_mimes',  array( $wploti_maintenance_redirect, 'wploti_mime_types'));
 	add_filter( 'login_url', array( $wploti_maintenance_redirect, 'filter_login_url' ), 10, 3 );
+	add_filter( 'site_url', array( $wploti_maintenance_redirect, 'filter_login_post_url' ), 10, 4 );
 	add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), array( $wploti_maintenance_redirect, 'wploti_action_links' ) );
 	add_filter( 'plugin_row_meta', array( $wploti_maintenance_redirect, 'wploti_plugin_row_meta' ), 10, 2 );
 

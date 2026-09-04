@@ -236,13 +236,13 @@ jQuery(document).ready(function ($) {
                 },
                 type: 'post',
                 success: function (result, textstatus) {
-                    //console.log(result);
+                    console.log(result);
 
                     //console.log('sucess');
 
                     //window.opener.location.reload();
 
-                    $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
+                    $(".updated").text(result.data.message).fadeIn(1000).delay(7000).fadeOut("slow");
                 },
                 error: function (result) {
                     //console.log(result);
@@ -267,7 +267,7 @@ jQuery(document).ready(function ($) {
 
                     //window.opener.location.reload();
 
-                    $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
+                    $(".updated").text(result.data.message).fadeIn(1000).delay(7000).fadeOut("slow");
                 },
                 error: function (result) {
                     //console.log(result);
@@ -328,7 +328,7 @@ jQuery(document).ready(function ($) {
 
                 //  console.log('sucess');
 
-                $(".updated").fadeIn(1000).delay(7000).fadeOut("slow");
+                $(".updated").text(result.data.message).fadeIn(1000).delay(7000).fadeOut("slow");
             },
             error: function (result) {
                 // console.log(result);
@@ -374,6 +374,7 @@ jQuery(document).ready(function ($) {
     $('#wploti-save-custom-login').on('click', function () {
         var enabled = $('#wploti-custom-login-enabled').is(':checked');
         var slug = $('#wploti-custom-login-slug').val().trim();
+        var privateLoginEnabled = $('#wploti-private-login-enabled').is(':checked');
         var result = $('#wploti-custom-login-result');
 
         result.empty();
@@ -381,7 +382,8 @@ jQuery(document).ready(function ($) {
             action: 'wploti_save_custom_login_url',
             security: $('#wploti-custom-login-enabled').data('security'),
             enabled: enabled ? '1' : '0',
-            slug: slug
+            slug: slug,
+            private_login_enabled: privateLoginEnabled ? '1' : '0'
         }).done(function (response) {
             if (!response.success) {
                 $('.notice').text(response.data.message).fadeIn(1000).delay(7000).fadeOut('slow');;
@@ -393,6 +395,32 @@ jQuery(document).ready(function ($) {
         }).fail(function () {
             result.empty();
         });
+    });
+
+    $('#wploti-copy-custom-login-url').on('click', function () {
+        var button = $(this);
+        var url = $('#wploti-custom-login-slug').data('base-url') + $('#wploti-custom-login-slug').val().trim();
+
+        if (!navigator.clipboard) {
+            return;
+        }
+
+        navigator.clipboard.writeText(url).then(function () {
+            var original = button.find('.dashicons').attr('class');
+            button.find('.dashicons').attr('class', 'dashicons dashicons-yes');
+            setTimeout(function () {
+                button.find('.dashicons').attr('class', original);
+            }, 1500);
+        });
+    });
+
+    $('#wploti-generate-custom-login-slug').on('click', function () {
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        var slug = '';
+        for (var i = 0; i < 12; i++) {
+            slug += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        $('#wploti-custom-login-slug').val(slug);
     });
 
     $('button.wploti_save').on('click', function () {
@@ -523,7 +551,8 @@ jQuery(document).ready(function ($) {
         var errors = validateIpRecord(name, ipAddress);
 
         if (errors.length) {
-            window.alert(errors.join('\n'));
+            //window.alert(errors.join('\n'));
+            wploti_alert_arr(errors);
             return;
         }
 
@@ -549,7 +578,8 @@ jQuery(document).ready(function ($) {
         }, function (response) {
             var parts = response.split('|');
             if (parts[0] !== 'SUCCESS') {
-                window.alert(wploti_var.ip_database_error);
+                // window.alert(wploti_var.ip_database_error); //TODO : Back to this in case of errors
+                wploti_alert(wploti_var.ip_database_error);
                 return;
             }
 
